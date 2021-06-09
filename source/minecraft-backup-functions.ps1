@@ -109,7 +109,7 @@ function ConvertTo-MinecraftSavedGame {
 	$worldPath = (Join-Path -Path $ServerPath -ChildPath $WorldName)
 	$netherPath = Join-Path -Path $DestinationPath -ChildPath "$($WorldName)_nether"
 	$endPath = Join-Path -Path $DestinationPath -ChildPath "$($WorldName)_the_end"
-	Copy-Item -Path $worldPath -Destination $savePath
+	Copy-Item -Path $worldPath -Destination $savePath -Recurse
 	Move-Item -Path (Join-Path $netherPath -ChildPath $netherFolderName) -Destination $savePath
 	Move-Item -Path (Join-Path $endPath -ChildPath $endFolderName) -Destination $savePath
 	Remove-Item $netherPath -Recurse
