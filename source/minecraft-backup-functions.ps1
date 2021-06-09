@@ -58,9 +58,9 @@ function Backup-MinecraftServerWorld {
 		[System.IO.FileInfo]$ServerPath = '/Applications/Minecraft-Server'
 	)
 
-	$worldPaths = @(Join-Path -Path $ServerPath -ChildPath $WorldName,
-					"$($worldPath)_nether",
-					"$($worldPath)_the_end")
+	$worldPaths = @(Join-Path -Path $ServerPath -ChildPath $WorldName
+					Join-Path -Path $ServerPath -ChildPath "$($WorldName)_nether"
+					Join-Path -Path $ServerPath -ChildPath "$($WorldName)_the_end")
 	$scrubbedWorldName = (Get-Culture).TextInfo.ToLower(($WorldName -replace ' ', '-'))
 	$formattedDate = $Date.ToString('yyyy-MM-dd')
 
