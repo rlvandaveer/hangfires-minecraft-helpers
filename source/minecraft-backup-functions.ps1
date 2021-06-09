@@ -65,7 +65,7 @@ function Backup-MinecraftServerWorld {
 	$formattedDate = $Date.ToString('yyyy-MM-dd')
 
 	Compress-Archive -Path $worldPaths `
-					 -DestinationPath (Join-Path -Path $DestinationPath -ChildPath "$scrubbedSavedGameName-$formattedDate.zip") `
+					 -DestinationPath (Join-Path -Path $DestinationPath -ChildPath "$scrubbedWorldName-$formattedDate.zip") `
 					 -Force:$Force
 }
 
