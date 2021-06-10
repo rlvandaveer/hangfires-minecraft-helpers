@@ -1,4 +1,4 @@
-. ./administration/source/resourcepack-functions.ps1
+. ./source/resourcepack-functions.ps1
 
 # Get-ResourcePackVersion
 
