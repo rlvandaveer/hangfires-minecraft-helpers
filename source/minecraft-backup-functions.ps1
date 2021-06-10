@@ -5,12 +5,20 @@ function Backup-MinecraftSavedGame {
 		[Parameter(Mandatory = $false)]
 		[string]$SavedGameName = 'HangFire0331s World',
 		[Parameter(Mandatory = $false)]
+		[ValidateScript({
+			if (-not ($_ | Test-Path)) { throw 'Source is not a valid path'}
+			if (-not ($_ | Test-Path -PathType Container)) { throw 'Source is not a directory'}
+		})]
 		[System.IO.FileInfo]$DestinationPath = '~/Downloads/minecraft',
 		[Parameter(Mandatory = $false)]
 		[DateTime]$Date = [DateTime]::Today,
 		[Parameter(Mandatory = $false)]
 		[switch]$Force = $false,
 		[Parameter(Mandatory = $false)]
+		[ValidateScript({
+			if (-not ($_ | Test-Path)) { throw 'SavesPath is not a valid path'}
+			if (-not ($_ | Test-Path -PathType Container)) { throw 'SavesPath is not a directory'}
+		})]
 		[System.IO.FileInfo]$SavesPath = '~/Library/ApplicationSupport/minecraft/saves/'
 	)
 
@@ -27,12 +35,20 @@ function Restore-MinecraftSavedGame {
 		[Parameter(Mandatory = $false)]
 		[string]$SavedGameName = 'HangFire0331s World',
 		[Parameter(Mandatory = $false)]
-		[string]$SourcePath = '~/Downloads/minecraft',
+		[ValidateScript({
+			if (-not ($_ | Test-Path)) { throw 'Source is not a valid path'}
+			if (-not ($_ | Test-Path -PathType Container)) { throw 'Source is not a directory'}
+		})]
+		[System.IO.FileInfo]$SourcePath = '~/Downloads/minecraft',
 		[Parameter(Mandatory = $false)]
 		[DateTime]$Date = [DateTime]::Today,
 		[Parameter(Mandatory = $false)]
 		[switch]$Force = $false,
 		[Parameter(Mandatory = $false)]
+		[ValidateScript({
+			if (-not ($_ | Test-Path)) { throw 'SavesPath is not a valid path'}
+			if (-not ($_ | Test-Path -PathType Container)) { throw 'SavesPath is not a directory'}
+		})]
 		[System.IO.FileInfo]$SavesPath = '~/Library/ApplicationSupport/minecraft/saves/'
 	)
 
@@ -49,12 +65,20 @@ function Backup-MinecraftServerWorld {
 		[Parameter(Mandatory = $false)]
 		[string]$WorldName = 'HangFire0331s World',
 		[Parameter(Mandatory = $false)]
-		[string]$DestinationPath = '~/Downloads/minecraft',
+		[ValidateScript({
+			if (-not ($_ | Test-Path)) { throw 'Destination is not a valid path'}
+			if (-not ($_ | Test-Path -PathType Container)) { throw 'Destination is not a directory'}
+		})]
+		[System.IO.FileInfo]$DestinationPath = '~/Downloads/minecraft',
 		[Parameter(Mandatory = $false)]
 		[DateTime]$Date = [DateTime]::Today,
 		[Parameter(Mandatory = $false)]
 		[switch]$Force = $false,
 		[Parameter(Mandatory = $false)]
+		[ValidateScript({
+			if (-not ($_ | Test-Path)) { throw 'ServerPath is not a valid path'}
+			if (-not ($_ | Test-Path -PathType Container)) { throw 'ServerPath is not a directory'}
+		})]
 		[System.IO.FileInfo]$ServerPath = '/Applications/Minecraft-Server'
 	)
 
@@ -74,12 +98,20 @@ function Restore-MinecraftServerWorld {
 		[Parameter(Mandatory = $false)]
 		[string]$WorldName = 'HangFire0331s World',
 		[Parameter(Mandatory = $false)]
-		[string]$SourcePath = '~/Downloads/minecraft',
+		[ValidateScript({
+			if (-not ($_ | Test-Path)) { throw 'Destination is not a valid path'}
+			if (-not ($_ | Test-Path -PathType Container)) { throw 'Destination is not a directory'}
+		})]
+		[System.IO.FileInfo]$SourcePath = '~/Downloads/minecraft',
 		[Parameter(Mandatory = $false)]
 		[DateTime]$Date = [DateTime]::Today,
 		[Parameter(Mandatory = $false)]
 		[switch]$Force = $false,
 		[Parameter(Mandatory = $false)]
+		[ValidateScript({
+			if (-not ($_ | Test-Path)) { throw 'ServerPath is not a valid path'}
+			if (-not ($_ | Test-Path -PathType Container)) { throw 'ServerPath is not a directory'}
+		})]
 		[System.IO.FileInfo]$ServerPath = '/Applications/Minecraft-Server'
 	)
 
@@ -96,22 +128,28 @@ function ConvertTo-MinecraftSavedGame {
 		[Parameter(Mandatory = $false)]
 		[string]$WorldName = 'HangFire0331s World',
 		[Parameter(Mandatory = $false)]
-		[string]$DestinationPath = '~/Library/Application Support/Minecraft/saves',
+		[ValidateScript({
+			if (-not ($_ | Test-Path)) { throw 'Destination is not a valid path'}
+			if (-not ($_ | Test-Path -PathType Container)) { throw 'Destination is not a directory'}
+		})]
+		[System.IO.FileInfo]$DestinationPath = '~/Library/Application Support/Minecraft/saves',
 		[Parameter(Mandatory = $false)]
 		[switch]$Force = $false,
 		[Parameter(Mandatory = $false)]
+		[ValidateScript({
+			if (-not ($_ | Test-Path)) { throw 'ServerPath is not a valid path'}
+			if (-not ($_ | Test-Path -PathType Container)) { throw 'ServerPath is not a directory'}
+		})]
 		[System.IO.FileInfo]$ServerPath = '/Applications/Minecraft-Server'
 	)
 
+	$worldPath = (Join-Path -Path $ServerPath -ChildPath $WorldName)
+	$netherPath = Join-Path -Path $ServerPath -ChildPath "$($WorldName)_nether"
+	$endPath = Join-Path -Path $ServerPath -ChildPath "$($WorldName)_the_end"
+	$savePath = (Join-Path -Path $DestinationPath -ChildPath $WorldName)
 	$netherFolderName = 'DIM-1'
 	$endFolderName = 'DIM1'
-	$savePath = (Join-Path -Path $DestinationPath -ChildPath $WorldName)
-	$worldPath = (Join-Path -Path $ServerPath -ChildPath $WorldName)
-	$netherPath = Join-Path -Path $DestinationPath -ChildPath "$($WorldName)_nether"
-	$endPath = Join-Path -Path $DestinationPath -ChildPath "$($WorldName)_the_end"
-	Copy-Item -Path $worldPath -Destination $DestinationPath -Recurse
-	Move-Item -Path (Join-Path $netherPath -ChildPath $netherFolderName) -Destination $savePath
-	Move-Item -Path (Join-Path $endPath -ChildPath $endFolderName) -Destination $savePath
-	Remove-Item $netherPath -Recurse
-	Remove-Item $endPath -Recurse
+	Copy-Item -Path $worldPath -Destination $DestinationPath -Recurse -Force:$Force
+	Copy-Item -Path (Join-Path $netherPath -ChildPath $netherFolderName) -Destination (Join-Path -Path $savePath -ChildPath $netherFolderName) -Recurse -Force:$Force
+	Copy-Item -Path (Join-Path $endPath -ChildPath $endFolderName) -Destination (Join-Path -Path $savePath -ChildPath $endFolderName) -Recurse -Force:$Force
 }
