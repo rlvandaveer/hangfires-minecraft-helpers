@@ -11,5 +11,12 @@
 			"script": ".vscode/debug-resource-functions.ps1",
 			"cwd": "${workspaceFolder}"
 		}
+		{
+			"name": "Debug Backup Functions",
+			"type": "PowerShell",
+			"request": "launch",
+			"script": ".vscode/debug-backup-functions.ps1",
+			"cwd": "${workspaceFolder}"
+		}
 	]
 }
