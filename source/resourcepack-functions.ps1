@@ -61,11 +61,11 @@ function Get-ResourcePackVersion {
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $false)]
-		[ValidateScript({
-			if (-not ($_ | Test-Path)) { throw "The specified path is not a valid path or does not exist" }
-			if (-not ($_ | Test-Path -PathType Container)) { throw "The specified path does not point to a directory destination" }
-			$true
-		})]
+		[ValidateScript( {
+				if (-not ($_ | Test-Path)) { throw "The specified path is not a valid path or does not exist" }
+				if (-not ($_ | Test-Path -PathType Container)) { throw "The specified path does not point to a directory destination" }
+				$true
+			})]
 		[System.IO.FileInfo]$Path = '~/Code/Heliar/minecraft/resourcepacks'
 	)
 
@@ -78,20 +78,56 @@ function Get-ResourcePackVersion {
 			'4' = @{ min = '1.13'; max = '1.14.4' }
 			'5' = @{ min = '1.15'; max = '1.16.1' }
 			'6' = @{ min = '1.16.2'; max = '1.16.5' }
-			'7' = @{ version = '1.17' }
+			'7' = @{ min = '1.17'; max = '1.17.1' }
+			'8' = @{ min = '1.18' }
 		}
 	}
 
 	process {
 
-		$packMetaFileName = 'pack.mcmeta'
-		$Path = (Get-Item -Path $Path).FullName
-		$scrubbedResourcePackName = (Get-Culture).TextInfo.ToLower(($ResourcePackName -replace ' ', '-'))
-		$sourcePath = Join-Path -Path $Path -ChildPath $scrubbedResourcePackName
-		$packMetaData = Get-Content -Path (Join-Path -Path $sourcePath -ChildPath $packMetaFileName) -Raw | ConvertFrom-Json -Depth 10
+		$packMetaData = Get-ResourcePackMetaData -Path $Path
 		$packFormat = $packMetaData.pack.pack_format
 
-		$version = $packFormats["$packFormat"]?.version ? $packFormats["$packFormat"]?.version : $packFormats["$packFormat"]?.max
+		$version = $packFormats["$packFormat"]?.version ? $packFormats["$packFormat"].version : ($packFormats["$packFormat"]?.max ? $packFormats["$packFormat"].max : "$($packFormats["$packFormat"].min)+")
 		$version
 	}
+}
+
+function Get-ResourcePackVersionedDescription {
+	[CmdletBinding()]
+	param (
+		[Parameter(Mandatory = $false)]
+		[ValidateScript( {
+				if (-not ($_ | Test-Path)) { throw "The specified path is not a valid path or does not exist" }
+				if (-not ($_ | Test-Path -PathType Container)) { throw "The specified path does not point to a directory destination" }
+				$true
+			})]
+		[System.IO.FileInfo]$Path = '~/Code/Heliar/minecraft/resourcepacks'
+	)
+
+	$packMetaData = Get-ResourcePackMetaData -Path $Path
+	$description = "$($packMetaData.pack.description) for $(Get-ResourcePackVersion -Path $Path)"
+	$description
+
+}
+
+function Get-ResourcePackMetaData {
+	[CmdletBinding()]
+	param (
+		[Parameter(Mandatory = $false)]
+		[ValidateScript( {
+				if (-not ($_ | Test-Path)) { throw "The specified path is not a valid path or does not exist" }
+				if (-not ($_ | Test-Path -PathType Container)) { throw "The specified path does not point to a directory destination" }
+				$true
+			})]
+		[System.IO.FileInfo]$Path = '~/Code/Heliar/minecraft/resourcepacks'
+	)
+
+	$packMetaFileName = 'pack.mcmeta'
+	$Path = (Get-Item -Path $Path).FullName
+	$scrubbedResourcePackName = (Get-Culture).TextInfo.ToLower(($ResourcePackName -replace ' ', '-'))
+	$sourcePath = Join-Path -Path $Path -ChildPath $scrubbedResourcePackName
+	$packMetaData = Get-Content -Path (Join-Path -Path $sourcePath -ChildPath $packMetaFileName) -Raw | ConvertFrom-Json -Depth 10
+	$packMetaData
+
 }
