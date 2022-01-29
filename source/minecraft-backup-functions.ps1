@@ -72,6 +72,7 @@ function Backup-MinecraftServerWorld {
 		[ValidateScript({
 			if (-not ($_ | Test-Path)) { throw 'Destination is not a valid path'}
 			if (-not ($_ | Test-Path -PathType Container)) { throw 'Destination is not a directory'}
+			return $true
 		})]
 		[System.IO.FileInfo]$DestinationPath = '~/Downloads/minecraft',
 		[Parameter(Mandatory = $false)]
@@ -82,6 +83,7 @@ function Backup-MinecraftServerWorld {
 		[ValidateScript({
 			if (-not ($_ | Test-Path)) { throw 'ServerPath is not a valid path'}
 			if (-not ($_ | Test-Path -PathType Container)) { throw 'ServerPath is not a directory'}
+			return $true
 		})]
 		[System.IO.FileInfo]$ServerPath = '/Applications/Minecraft-Server'
 	)
