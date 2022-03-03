@@ -125,7 +125,7 @@ function Restore-MinecraftServerWorld {
 
 	$formattedDate = $Date.ToString('yyyy-MM-dd')
 	$scrubbedWorldName = (Get-Culture).TextInfo.ToTitleCase(($WorldName -replace ' ', '-'))
-	Expand-Archive -Path (Join-Path -Path $SourcePath -ChildPath "$scrubbedSavedGameName-$formattedDate.zip") `
+	Expand-Archive -Path (Join-Path -Path $SourcePath -ChildPath "$scrubbedWorldName-$formattedDate.zip") `
 				   -DestinationPath $ServerPath `
 				   -Force:$Force
 }
