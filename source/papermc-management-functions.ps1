@@ -1,13 +1,19 @@
 <#
-
-
+.SYNOPSIS
+	Downloads the latest Paper build from the PaperMC project for the specified version of Minecraft
+.PARAMETER PaperDownloadUri
+	Overrides the default download Uri for Paper
+.PARAMETER MinecraftVersion
+	The version of Minecraft to find builds for
+.PARAMETER ServerPath
+	An array of paths where the Paper build should be copied to
 #>
 function Update-PaperVersion {
 	[CmdletBinding(SupportsShouldProcess = $true)]
 	param (
 		[Parameter(Mandatory = $false)]
 		[ValidateNotNullOrEmpty()]
-		[Uri]$PaperDownloadUrl,
+		[Uri]$PaperDownloadUri,
 		[Parameter(Mandatory = $false)]
 		[ValidateNotNullOrEmpty()]
 		[string]$MinecraftVersion = '1.18.2',
@@ -22,7 +28,7 @@ function Update-PaperVersion {
 
 	begin {
 
-		if ([String]::IsNullOrWhiteSpace($PaperDownloadUrl)) {
+		if ([String]::IsNullOrWhiteSpace($PaperDownloadUri)) {
 
 			New-Variable -Name VERSION_INFO_URI -Value "https://papermc.io/api/v2/projects/paper/versions/$MinecraftVersion/" -Option Constant -WhatIf:$false
 			Write-Verbose "Retrieving Paper builds for Minecraft version $MinecraftVersion..."
@@ -45,13 +51,13 @@ function Update-PaperVersion {
 
 		} else {
 
-			$fileName = Split-Path -Path $PaperDownloadUrl -Leaf
+			$fileName = Split-Path -Path $PaperDownloadUri -Leaf
 			$tempFile = (Join-Path -Path $env:TMPDIR -ChildPath $fileName)
 
 			if ($PSCmdlet.ShouldProcess($fileUri, "Download Paper build")) {
 
 				Write-Verbose "Downloading $fileName to $tempFile..."
-				$response = Invoke-WebRequest -Uri $PaperDownloadUrl -OutFile $tempFile
+				$response = Invoke-WebRequest -Uri $PaperDownloadUri -OutFile $tempFile
 
 			}
 
