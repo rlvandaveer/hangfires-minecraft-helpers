@@ -1,6 +1,8 @@
 <#
 .SYNOPSIS
-	Downloads the latest Paper build from the PaperMC project for the specified version of Minecraft
+	Downloads the latest Paper build and places it into the desired server paths
+.DESCRIPTION
+	This Cmdlet can be used to update the Paper mod in one or more server directories.
 .PARAMETER PaperDownloadUri
 	Overrides the default download Uri for Paper
 .PARAMETER MinecraftVersion
