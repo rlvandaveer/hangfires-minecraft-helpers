@@ -8,7 +8,7 @@ function Backup-MinecraftSavedGame {
 		[ValidateScript({
 			if (-not ($_ | Test-Path)) { throw 'Source is not a valid path'}
 			if (-not ($_ | Test-Path -PathType Container)) { throw 'Source is not a directory'}
-			return $true
+			$true
 		})]
 		[System.IO.FileInfo]$DestinationPath = '~/Downloads/minecraft',
 		[Parameter(Mandatory = $false)]
@@ -19,7 +19,7 @@ function Backup-MinecraftSavedGame {
 		[ValidateScript({
 			if (-not ($_ | Test-Path)) { throw 'SavesPath is not a valid path'}
 			if (-not ($_ | Test-Path -PathType Container)) { throw 'SavesPath is not a directory'}
-			return $true
+			$true
 		})]
 		[System.IO.FileInfo]$SavesPath = '~/Library/ApplicationSupport/minecraft/saves/'
 	)
@@ -40,7 +40,7 @@ function Restore-MinecraftSavedGame {
 		[ValidateScript({
 			if (-not ($_ | Test-Path)) { throw 'Source is not a valid path'}
 			if (-not ($_ | Test-Path -PathType Container)) { throw 'Source is not a directory'}
-			return $true
+			$true
 		})]
 		[System.IO.FileInfo]$SourcePath = '~/Downloads/minecraft',
 		[Parameter(Mandatory = $false)]
@@ -51,7 +51,7 @@ function Restore-MinecraftSavedGame {
 		[ValidateScript({
 			if (-not ($_ | Test-Path)) { throw 'SavesPath is not a valid path'}
 			if (-not ($_ | Test-Path -PathType Container)) { throw 'SavesPath is not a directory'}
-			return $true
+			$true
 		})]
 		[System.IO.FileInfo]$SavesPath = '~/Library/ApplicationSupport/minecraft/saves/'
 	)
@@ -72,7 +72,7 @@ function Backup-MinecraftServerWorld {
 		[ValidateScript({
 			if (-not ($_ | Test-Path)) { throw 'Destination is not a valid path'}
 			if (-not ($_ | Test-Path -PathType Container)) { throw 'Destination is not a directory'}
-			return $true
+			$true
 		})]
 		[System.IO.FileInfo]$DestinationPath = '~/Downloads/minecraft',
 		[Parameter(Mandatory = $false)]
@@ -83,7 +83,7 @@ function Backup-MinecraftServerWorld {
 		[ValidateScript({
 			if (-not ($_ | Test-Path)) { throw 'ServerPath is not a valid path'}
 			if (-not ($_ | Test-Path -PathType Container)) { throw 'ServerPath is not a directory'}
-			return $true
+			$true
 		})]
 		[System.IO.FileInfo]$ServerPath = '/Applications/Minecraft-Server'
 	)
@@ -107,7 +107,7 @@ function Restore-MinecraftServerWorld {
 		[ValidateScript({
 			if (-not ($_ | Test-Path)) { throw 'Destination is not a valid path'}
 			if (-not ($_ | Test-Path -PathType Container)) { throw 'Destination is not a directory'}
-			return $true
+			$true
 		})]
 		[System.IO.FileInfo]$SourcePath = '~/Downloads/minecraft',
 		[Parameter(Mandatory = $false)]
@@ -118,7 +118,7 @@ function Restore-MinecraftServerWorld {
 		[ValidateScript({
 			if (-not ($_ | Test-Path)) { throw 'ServerPath is not a valid path'}
 			if (-not ($_ | Test-Path -PathType Container)) { throw 'ServerPath is not a directory'}
-			return $true
+			$true
 		})]
 		[System.IO.FileInfo]$ServerPath = '/Applications/Minecraft-Server'
 	)
@@ -139,7 +139,7 @@ function ConvertTo-MinecraftSavedGame {
 		[ValidateScript({
 			if (-not ($_ | Test-Path)) { throw 'Destination is not a valid path'}
 			if (-not ($_ | Test-Path -PathType Container)) { throw 'Destination is not a directory'}
-			return $true
+			$true
 		})]
 		[System.IO.FileInfo]$DestinationPath = '~/Library/Application Support/Minecraft/saves',
 		[Parameter(Mandatory = $false)]
@@ -148,7 +148,7 @@ function ConvertTo-MinecraftSavedGame {
 		[ValidateScript({
 			if (-not ($_ | Test-Path)) { throw 'ServerPath is not a valid path'}
 			if (-not ($_ | Test-Path -PathType Container)) { throw 'ServerPath is not a directory'}
-			return $true
+			$true
 		})]
 		[System.IO.FileInfo]$ServerPath = '/Applications/Minecraft-Server'
 	)
