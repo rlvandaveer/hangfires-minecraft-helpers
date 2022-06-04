@@ -23,7 +23,7 @@ function Update-PaperVersion {
 		[ValidateScript({
 			if (-not ($_ | Test-Path)) { throw 'Source is not a valid path'}
 			if (-not ($_ | Test-Path -PathType Container)) { throw 'Source is not a directory'}
-			return $true
+			$true
 		})]
 		[System.IO.FileSystemInfo[]]$ServerPath
 	)
@@ -32,7 +32,7 @@ function Update-PaperVersion {
 
 		if ([String]::IsNullOrWhiteSpace($PaperDownloadUri)) {
 
-			New-Variable -Name VERSION_INFO_URI -Value "https://papermc.io/api/v2/projects/paper/versions/$MinecraftVersion/" -Option Constant -WhatIf:$false
+			New-Variable -Name VERSION_INFO_URI -Value "https://api.papermc.io/v2/projects/paper/versions/$MinecraftVersion/" -Option Constant -WhatIf:$false
 			Write-Verbose "Retrieving Paper builds for Minecraft version $MinecraftVersion..."
 			$versionInfo = Invoke-RestMethod -Uri $VERSION_INFO_URI -Method Get -StatusCodeVariable versionInfoResponseCode
 
@@ -40,7 +40,7 @@ function Update-PaperVersion {
 
 			$buildNumber = ($versionInfo.builds | Measure-Object -Maximum).Maximum
 			Write-Verbose "Latest Paper build version number for $MinecraftVersion is $buildNumber"
-			$fileUri = "https://papermc.io/api/v2/projects/paper/versions/$MinecraftVersion/builds/$buildNumber/downloads/paper-$MinecraftVersion-$buildNumber.jar"
+			$fileUri = "https://api.papermc.io/v2/projects/paper/versions/$MinecraftVersion/builds/$buildNumber/downloads/paper-$MinecraftVersion-$buildNumber.jar"
 			$fileName = Split-Path -Path $fileUri -Leaf
 			$tempFile = (Join-Path -Path $env:TMPDIR -ChildPath $fileName)
 
@@ -87,22 +87,3 @@ function Update-PaperVersion {
 		}
 	}
 }
-
-# function Stop-MinecraftServer {
-# 	[CmdletBinding()]
-# 	param (
-
-# 	)
-
-# 	begin {
-
-# 	}
-
-# 	process {
-
-# 	}
-
-# 	end {
-
-# 	}
-# }
