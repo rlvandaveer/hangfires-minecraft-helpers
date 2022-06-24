@@ -18,7 +18,7 @@ function Update-PaperVersion {
 		[Uri]$PaperDownloadUri,
 		[Parameter(Mandatory = $false)]
 		[ValidateNotNullOrEmpty()]
-		[string]$MinecraftVersion = '1.18.2',
+		[string]$MinecraftVersion = '1.19',
 		[Parameter(Mandatory = $true, ValueFromPipeline = $true)]
 		[ValidateScript({
 			if (-not ($_ | Test-Path)) { throw 'Source is not a valid path'}
