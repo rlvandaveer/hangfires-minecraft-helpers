@@ -68,6 +68,9 @@ function Update-PaperVersion {
 
 	process {
 
+		$maxPaperVer = ((Get-ChildItem -Path (Join-Path -Path $ServerPath -ChildPath "paper-$MinecraftVersion*")).Name | Measure-Object -Maximum).Maximum
+		Write-Verbose "Max Version of PaperMC in $ServerPath is $maxPaperVer"
+
 		if ($PSCmdlet.ShouldProcess($ServerPath, "Copy Paper build")) {
 
 			$destination = Join-Path -Path $ServerPath -ChildPath $fileName
