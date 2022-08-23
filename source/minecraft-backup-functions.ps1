@@ -10,7 +10,7 @@ function Backup-MinecraftSavedGame {
 			if (-not ($_ | Test-Path -PathType Container)) { throw 'Source is not a directory'}
 			$true
 		})]
-		[System.IO.FileInfo]$DestinationPath = '~/Downloads/minecraft',
+		[System.IO.FileInfo]$DestinationPath = '~/Downloads/minecraft/World and Server Backups',
 		[Parameter(Mandatory = $false)]
 		[DateTime]$Date = [DateTime]::Today,
 		[Parameter(Mandatory = $false)]
@@ -42,7 +42,7 @@ function Restore-MinecraftSavedGame {
 			if (-not ($_ | Test-Path -PathType Container)) { throw 'Source is not a directory'}
 			$true
 		})]
-		[System.IO.FileInfo]$SourcePath = '~/Downloads/minecraft',
+		[System.IO.FileInfo]$SourcePath = '~/Downloads/minecraft/World and Server Backups',
 		[Parameter(Mandatory = $false)]
 		[DateTime]$Date = [DateTime]::Today,
 		[Parameter(Mandatory = $false)]
@@ -74,7 +74,7 @@ function Backup-MinecraftServerWorld {
 			if (-not ($_ | Test-Path -PathType Container)) { throw 'Destination is not a directory'}
 			$true
 		})]
-		[System.IO.FileInfo]$DestinationPath = '~/Downloads/minecraft',
+		[System.IO.FileInfo]$DestinationPath = '~/Downloads/minecraft/World and Server Backups',
 		[Parameter(Mandatory = $false)]
 		[DateTime]$Date = [DateTime]::Today,
 		[Parameter(Mandatory = $false)]
@@ -109,7 +109,7 @@ function Restore-MinecraftServerWorld {
 			if (-not ($_ | Test-Path -PathType Container)) { throw 'Destination is not a directory'}
 			$true
 		})]
-		[System.IO.FileInfo]$SourcePath = '~/Downloads/minecraft',
+		[System.IO.FileInfo]$SourcePath = '~/Downloads/minecraft/World and Server Backups',
 		[Parameter(Mandatory = $false)]
 		[DateTime]$Date = [DateTime]::Today,
 		[Parameter(Mandatory = $false)]
