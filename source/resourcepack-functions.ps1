@@ -27,7 +27,7 @@ function Compress-ResourcePackForTesting {
 		[Parameter(Mandatory = $false)]
 		[string]$ResourcePackName = "HangFire0331 Vanilla Tweaks",
 		[Parameter(Mandatory = $false)]
-		[string]$Path = '~/Code/Heliar/minecraft/resourcepacks',
+		[string]$Path = '~/Code/Minecraft/resourcepacks',
 		[Parameter(Mandatory = $false)]
 		[string]$Destination = '~/Library/Application Support/minecraft/resourcepacks',
 		[Parameter(Mandatory = $false)]
