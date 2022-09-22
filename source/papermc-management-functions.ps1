@@ -42,7 +42,7 @@ function Update-PaperVersion {
 			Write-Verbose "Latest Paper build version number for $MinecraftVersion is $buildNumber"
 			$fileUri = "https://api.papermc.io/v2/projects/paper/versions/$MinecraftVersion/builds/$buildNumber/downloads/paper-$MinecraftVersion-$buildNumber.jar"
 			$fileName = Split-Path -Path $fileUri -Leaf
-			$tempFile = (Join-Path -Path $env:TMPDIR -ChildPath $fileName)
+			$tempFile = (Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath $fileName)
 
 			if ($PSCmdlet.ShouldProcess($fileUri, "Download Paper build")) {
 
@@ -54,7 +54,7 @@ function Update-PaperVersion {
 		} else {
 
 			$fileName = Split-Path -Path $PaperDownloadUri -Leaf
-			$tempFile = (Join-Path -Path $env:TMPDIR -ChildPath $fileName)
+			$tempFile = (Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath $fileName)
 
 			if ($PSCmdlet.ShouldProcess($fileUri, "Download Paper build")) {
 
