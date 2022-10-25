@@ -78,6 +78,13 @@ function Update-PaperVersion {
 			Copy-Item -Path $tempFile -Destination $destination
 
 		}
+
+		if ($PSCmdlet.ShouldProcess($ServerPath, "Update start script")) {
+
+			Update-StartScript -MinecraftVersion $MinecraftVersion -PreviousPaperJar $maxPaperVer -NewPaperBuild $buildNumber -ServerPath $ServerPath
+
+		}
+
 	}
 
 	end {
@@ -88,5 +95,45 @@ function Update-PaperVersion {
 			Remove-Item -Path $tempFile
 
 		}
+	}
+}
+
+function Update-StartScript {
+	[CmdletBinding()]
+	param (
+		[Parameter(Mandatory = $false)]
+		[ValidateNotNullOrEmpty()]
+		[string]$MinecraftVersion = '1.19.2',
+		[Parameter(Mandatory = $true)]
+		[ValidateNotNullOrEmpty()]
+		$PreviousPaperJar,
+		[Parameter(Mandatory = $true)]
+		[ValidateNotNullOrEmpty()]
+		[int]$NewPaperBuild,
+		[Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+		[ValidateScript({
+			if (-not ($_ | Test-Path)) { throw 'Source is not a valid path'}
+			if (-not ($_ | Test-Path -PathType Container)) { throw 'Source is not a directory'}
+			$true
+		})]
+		[System.IO.FileSystemInfo[]]$ServerPath
+	)
+
+	begin {
+
+	}
+
+	process {
+
+		New-Variable -Name SCRIPT_NAME -Value "start.ps1" -Option Constant
+		$scriptPath = (Join-Path -Path $ServerPath -ChildPath $SCRIPT_NAME)
+		$newPaperJar = "paper-$MinecraftVersion-$NewPaperBuild.jar"
+		Write-Verbose "Updating $SCRIPT_NAME from $PreviousPaperJar to $newPaperJar..."
+		(Get-Content -Path $scriptPath) -replace $PreviousPaperJar, $newPaperJar | Set-Content $scriptPath
+
+	}
+
+	end {
+
 	}
 }
