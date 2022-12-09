@@ -36,7 +36,9 @@ function Update-PaperVersion {
 			Write-Verbose "Retrieving Paper builds for Minecraft version $MinecraftVersion..."
 			$versionInfo = Invoke-RestMethod -Uri $VERSION_INFO_URI -Method Get -StatusCodeVariable versionInfoResponseCode
 
-			if ($null -eq $versionInfo) { Write-Error 'Could not retrieve version information for Paper'}
+			if ($null -eq $versionInfo) {
+				throw 'Could not retrieve version information for Paper'
+			}
 
 			$buildNumber = ($versionInfo.builds | Measure-Object -Maximum).Maximum
 			Write-Verbose "Latest Paper build version number for $MinecraftVersion is $buildNumber"
