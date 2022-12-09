@@ -18,7 +18,7 @@ function Update-PaperVersion {
 		[Uri]$PaperDownloadUri,
 		[Parameter(Mandatory = $false)]
 		[ValidateNotNullOrEmpty()]
-		[string]$MinecraftVersion = '1.19.2',
+		[string]$MinecraftVersion = '1.19.3',
 		[Parameter(Mandatory = $true, ValueFromPipeline = $true)]
 		[ValidateScript({
 			if (-not ($_ | Test-Path)) { throw 'Source is not a valid path'}
@@ -71,6 +71,13 @@ function Update-PaperVersion {
 	process {
 
 		$maxPaperVer = ((Get-ChildItem -Path (Join-Path -Path $ServerPath -ChildPath "paper-$MinecraftVersion*")).Name | Measure-Object -Maximum).Maximum
+		if ($null -eq $maxPaperVer) {
+
+			Write-Verbose "Did not find a version of Paper for Minecraft version $MinecraftVersion. Looking for another version..."
+			$maxPaperVer = ((Get-ChildItem -Path (Join-Path -Path $ServerPath -ChildPath "paper-*")).Name | Measure-Object -Maximum).Maximum
+
+		}
+
 		Write-Verbose "Max Version of PaperMC in $ServerPath is $maxPaperVer"
 
 		if ($PSCmdlet.ShouldProcess($ServerPath, "Copy Paper build")) {
@@ -105,7 +112,7 @@ function Update-StartScript {
 	param (
 		[Parameter(Mandatory = $false)]
 		[ValidateNotNullOrEmpty()]
-		[string]$MinecraftVersion = '1.19.2',
+		[string]$MinecraftVersion = '1.19.3',
 		[Parameter(Mandatory = $true)]
 		[ValidateNotNullOrEmpty()]
 		$PreviousPaperJar,
