@@ -1,5 +1,4 @@
 
-
 function Backup-MinecraftSavedGame {
 	param (
 		[Parameter(Mandatory = $false)]
@@ -160,6 +159,6 @@ function ConvertTo-MinecraftSavedGame {
 	$netherFolderName = 'DIM-1'
 	$endFolderName = 'DIM1'
 	Copy-Item -Path $worldPath -Destination $DestinationPath -Recurse -Force:$Force
-	Copy-Item -Path (Join-Path $netherPath -ChildPath $netherFolderName) -Destination (Join-Path -Path $savePath -ChildPath $netherFolderName) -Recurse -Force:$Force
-	Copy-Item -Path (Join-Path $endPath -ChildPath $endFolderName) -Destination (Join-Path -Path $savePath -ChildPath $endFolderName) -Recurse -Force:$Force
+	Copy-Item -Path (Join-Path $netherPath -ChildPath $netherFolderName) -Destination $savePath -Recurse -Force:$Force
+	Copy-Item -Path (Join-Path $endPath -ChildPath $endFolderName) -Destination $savePath -Recurse -Force:$Force
 }
