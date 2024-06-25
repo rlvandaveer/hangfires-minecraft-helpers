@@ -249,15 +249,16 @@ function New-PaperServer {
 
 			Write-Verbose "Cloning base server directory..."
 			git clone --depth=1 git@github.com:rlvandaveer/hangfires-papermc-base-server.git $ServerPath
+			Write-Verbose "Removing git repository..."
 			Remove-Item -Path (Join-Path -Path $ServerPath -ChildPath '.git') -Recurse -Force
 
 			New-Variable -Name SCRIPT_NAME -Value "start.ps1" -Option Constant
 			Write-Verbose "Preparing startup script $SCRIPT_NAME..."
 
 			New-Variable -Name TEMPLATE_VALUE -Value '{{paper.jar}}' -Option Constant
-			Write-Verbose "Rename startup template file $TEMPLATE_VALUE..."
+			Write-Verbose "Rename startup template file start-template.ps1..."
 			$scriptPath = (Join-Path -Path $ServerPath -ChildPath $SCRIPT_NAME)
-			Rename-Item -Path (Join-Path -Path $ServerPath -ChildPath start-template.ps1) -NewName $scriptPath
+			Rename-Item -Path (Join-Path -Path $ServerPath -ChildPath start-template.ps1) -NewName $SCRIPT_NAME
 
 			Write-Verbose "Updating $SCRIPT_NAME to execute $fileName..."
 			(Get-Content -Path $scriptPath) -replace $TEMPLATE_VALUE, $fileName | Set-Content $scriptPath
