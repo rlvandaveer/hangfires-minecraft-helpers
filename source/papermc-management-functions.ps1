@@ -2,7 +2,7 @@
 .SYNOPSIS
 	Downloads the latest Paper build and places it into the desired server paths
 .DESCRIPTION
-	This Cmdlet can be used to update the Paper server JAR file in one or more server directories.
+	This Cmdlet can be used to update the Paper server JAR file in one or more server directories. This cmdlet supports ShouldProcess.
 .PARAMETER PaperDownloadUri
 	Overrides the default download Uri for Paper
 .PARAMETER MinecraftVersion
@@ -88,11 +88,7 @@ function Update-PaperVersion {
 
 		}
 
-		if ($PSCmdlet.ShouldProcess($ServerPath, "Update start script")) {
-
-			Update-StartScript -MinecraftVersion $MinecraftVersion -PreviousPaperJar $maxPaperVer -NewPaperBuild $buildNumber -ServerPath $ServerPath
-
-		}
+		Update-StartScript -MinecraftVersion $MinecraftVersion -PreviousPaperJar $maxPaperVer -NewPaperBuild $buildNumber -ServerPath $ServerPath
 
 	}
 
@@ -111,7 +107,7 @@ function Update-PaperVersion {
 .SYNOPSIS
 	Updates the start-up script in the server path(s) to the latest paper version.
 .DESCRIPTION
-	This commandlet finds the previous minecraft version in the start-up script and replaces it with the new version.
+	This commandlet finds the previous minecraft version in the start-up script and replaces it with the new version. This cmdlet supports ShouldProcess.
 .PARAMETER MinecraftVersion
 	The version of Minecraft to target
 .PARAMETER PreviousPaperJar
@@ -122,7 +118,7 @@ function Update-PaperVersion {
 	The path(s) to the server directories to update
 #>
 function Update-StartScript {
-	[CmdletBinding()]
+	[CmdletBinding(SupportsShouldProcess = $true)]
 	param (
 		[Parameter(Mandatory = $false)]
 		[ValidateNotNullOrEmpty()]
@@ -148,12 +144,15 @@ function Update-StartScript {
 
 	process {
 
-		New-Variable -Name SCRIPT_NAME -Value "start.ps1" -Option Constant
-		$scriptPath = (Join-Path -Path $ServerPath -ChildPath $SCRIPT_NAME)
-		$newPaperJar = "paper-$MinecraftVersion-$NewPaperBuild.jar"
-		Write-Verbose "Updating $SCRIPT_NAME from $PreviousPaperJar to $newPaperJar..."
-		(Get-Content -Path $scriptPath) -replace $PreviousPaperJar, $newPaperJar | Set-Content $scriptPath
+		if ($PSCmdlet.ShouldProcess($ServerPath, "Update start script")) {
 
+			New-Variable -Name SCRIPT_NAME -Value "start.ps1" -Option Constant
+			$scriptPath = (Join-Path -Path $ServerPath -ChildPath $SCRIPT_NAME)
+			$newPaperJar = "paper-$MinecraftVersion-$NewPaperBuild.jar"
+			Write-Verbose "Updating $SCRIPT_NAME from $PreviousPaperJar to $newPaperJar..."
+			(Get-Content -Path $scriptPath) -replace $PreviousPaperJar, $newPaperJar | Set-Content $scriptPath
+
+		}
 	}
 
 	end {
@@ -165,7 +164,7 @@ function Update-StartScript {
 .SYNOPSIS
 	This commandlet will create a new Paper server with default files
 .DESCRIPTION
-
+	This creates one or more Paper Minecraft servers using the latest version of Paper and a set of default files from Hangfires-PaperMC-Base-Server repo. This cmdlet supports ShouldProcess.
 .PARAMETER PaperDownloadUri
 	The URL where to download the Paper files. This only needs to be set if overriding the default location
 .PARAMETER MinecraftVersion
