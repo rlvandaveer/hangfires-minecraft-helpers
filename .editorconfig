@@ -1,0 +1,46 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# All files
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# PowerShell files
+[*.{ps1,psm1,psd1}]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+
+# XML files (for manifests, configs, etc.)
+[*.{xml,csproj,props,targets}]
+indent_style = tab
+indent_size = 4
+tab_width = 4
+
+# YAML files (GitVersion.yml, CI/CD configs)
+# Note: YAML syntax requires spaces for indentation
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# JSON files - can use tabs (2-space convention)
+[*.json]
+indent_style = tab
+indent_size = 2
+tab_width = 2
+
+# Markdown files - can use tabs (2-space convention)
+[*.md]
+indent_style = tab
+indent_size = 2
+tab_width = 2
+trim_trailing_whitespace = false
+
+# Batch files
+[*.{cmd,bat}]
+end_of_line = crlf
