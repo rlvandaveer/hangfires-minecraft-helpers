@@ -8,7 +8,7 @@
 .PARAMETER MinecraftVersion
 	The version of Minecraft to find builds for
 .PARAMETER ServerPath
-	An array of paths where the Paper build should be copied to
+ 	An array of paths where the Paper build should be copied to
 #>
 function Update-PaperVersion {
 	[CmdletBinding(SupportsShouldProcess = $true)]
@@ -70,16 +70,6 @@ function Update-PaperVersion {
 
 	process {
 
-		$maxPaperVer = ((Get-ChildItem -Path (Join-Path -Path $ServerPath -ChildPath "paper-$MinecraftVersion*")).Name | Measure-Object -Maximum).Maximum
-		if ($null -eq $maxPaperVer) {
-
-			Write-Verbose "Did not find a version of Paper for Minecraft version $MinecraftVersion. Looking for another version..."
-			$maxPaperVer = ((Get-ChildItem -Path (Join-Path -Path $ServerPath -ChildPath "paper-*")).Name | Measure-Object -Maximum).Maximum
-
-		}
-
-		Write-Verbose "Max Version of PaperMC in $ServerPath is $maxPaperVer"
-
 		if ($PSCmdlet.ShouldProcess($ServerPath, "Copy Paper build")) {
 
 			$destination = Join-Path -Path $ServerPath -ChildPath $fileName
@@ -88,7 +78,25 @@ function Update-PaperVersion {
 
 		}
 
-		Update-StartScript -MinecraftVersion $MinecraftVersion -PreviousPaperJar $maxPaperVer -NewPaperBuild $buildNumber -ServerPath $ServerPath
+		$maxPaperVer = ((Get-ChildItem -Path (Join-Path -Path $ServerPath -ChildPath "paper-$MinecraftVersion*")).Name | Measure-Object -Maximum).Maximum
+		if ($null -eq $maxPaperVer) {
+
+			Write-Verbose "Did not find a version of Paper for Minecraft version $MinecraftVersion. Looking for another version..."
+			$maxPaperVer = ((Get-ChildItem -Path (Join-Path -Path $ServerPath -ChildPath "paper-*")).Name | Measure-Object -Maximum).Maximum
+
+		}
+
+		if ($maxPaperVer -gt 0) {
+
+			Write-Verbose "Max Version of PaperMC in $ServerPath is $maxPaperVer"
+			Update-StartScript -MinecraftVersion $MinecraftVersion -PreviousPaperJar $maxPaperVer -NewPaperBuild $buildNumber -ServerPath $ServerPath
+
+		} else {
+			Write-Warning "No Version of PaperMC found in $ServerPath. Cannot update sever launch script."
+		}
+
+
+
 
 	}
 
@@ -138,26 +146,27 @@ function Update-StartScript {
 		[System.IO.FileSystemInfo[]]$ServerPath
 	)
 
-	begin {
-
-	}
+	begin { }
 
 	process {
 
-		if ($PSCmdlet.ShouldProcess($ServerPath, "Update start script")) {
+		New-Variable -Name SCRIPT_NAME -Value "start.ps1" -Option Constant
+		$scriptPath = (Join-Path -Path $ServerPath -ChildPath $SCRIPT_NAME)
+		$startExists = Test-Path -Path $scriptPath
 
-			New-Variable -Name SCRIPT_NAME -Value "start.ps1" -Option Constant
-			$scriptPath = (Join-Path -Path $ServerPath -ChildPath $SCRIPT_NAME)
+			if ($PSCmdlet.ShouldProcess($ServerPath, "Update start script")) {
+
+			if (-not $startExists) { throw "$scriptPath does not exist in the directory. Cannot continue with automatic update."}
 			$newPaperJar = "paper-$MinecraftVersion-$NewPaperBuild.jar"
 			Write-Verbose "Updating $SCRIPT_NAME from $PreviousPaperJar to $newPaperJar..."
 			(Get-Content -Path $scriptPath) -replace $PreviousPaperJar, $newPaperJar | Set-Content $scriptPath
 
+		} elseif (-not $startExists) {
+			Write-Warning "$scriptPath does not exist. Command will fail when run without -WhatIf"
 		}
 	}
 
-	end {
-
-	}
+	end { }
 }
 
 <#
@@ -275,9 +284,6 @@ function New-PaperServer {
 
 	}
 
-	end {
-
-
-	}
+	end { }
 
 }
