@@ -198,22 +198,7 @@ function Update-PaperVersion {
 
 		if ($null -ne $buildNumber) {
 
-			$maxPaperVer = ((Get-ChildItem -Path (Join-Path -Path $ServerPath -ChildPath "paper-$MinecraftVersion*")).Name | Measure-Object -Maximum).Maximum
-			if ($null -eq $maxPaperVer) {
-
-				Write-Verbose "Did not find a version of Paper for Minecraft version $MinecraftVersion. Looking for another version..."
-				$maxPaperVer = ((Get-ChildItem -Path (Join-Path -Path $ServerPath -ChildPath "paper-*")).Name | Measure-Object -Maximum).Maximum
-
-			}
-
-			if ($maxPaperVer -gt 0) {
-
-				Write-Verbose "Max Version of PaperMC in $ServerPath is $maxPaperVer"
-				Update-StartScript -MinecraftVersion $MinecraftVersion -PreviousPaperJar $maxPaperVer -NewPaperBuild $buildNumber -ServerPath $ServerPath
-
-			} else {
-				Write-Warning "No Version of PaperMC found in $ServerPath. Cannot update server launch script."
-			}
+			Update-StartScript -MinecraftVersion $MinecraftVersion -NewPaperBuild $buildNumber -ServerPath $ServerPath
 
 		} else {
 
@@ -238,12 +223,12 @@ function Update-PaperVersion {
 .SYNOPSIS
 	Updates the start-up script in the server path(s) to the latest paper version.
 .DESCRIPTION
-	This commandlet finds the previous minecraft version in the start-up script and
-	replaces it with the new version. This cmdlet supports ShouldProcess.
+	This commandlet finds the existing Paper JAR reference in the start-up script and
+	replaces it with the new version. Lines that are commented out (PowerShell '#' line
+	comments) are ignored when searching for the existing reference. This cmdlet supports
+	ShouldProcess.
 .PARAMETER MinecraftVersion
 	The Paper version being targeted (e.g. '26.1.2')
-.PARAMETER PreviousPaperJar
-	The previous Paper JAR filename to replace
 .PARAMETER NewPaperBuild
 	The new Paper build number
 .PARAMETER ServerPath
@@ -255,9 +240,6 @@ function Update-StartScript {
 		[Parameter(Mandatory = $true)]
 		[ValidateNotNullOrEmpty()]
 		[string]$MinecraftVersion,
-		[Parameter(Mandatory = $true)]
-		[ValidateNotNullOrEmpty()]
-		$PreviousPaperJar,
 		[Parameter(Mandatory = $true)]
 		[ValidateNotNullOrEmpty()]
 		[int]$NewPaperBuild,
@@ -278,15 +260,45 @@ function Update-StartScript {
 		$scriptPath = (Join-Path -Path $ServerPath -ChildPath $SCRIPT_NAME)
 		$startExists = Test-Path -Path $scriptPath
 
+		if (-not $startExists) {
+			if ($PSCmdlet.ShouldProcess($ServerPath, "Update start script")) {
+				throw "$scriptPath does not exist in the directory. Cannot continue with automatic update."
+			} else {
+				Write-Warning "$scriptPath does not exist. Command will fail when run without -WhatIf"
+				return
+			}
+		}
+
+		$scriptLines = Get-Content -Path $scriptPath
+		$jarPattern = 'paper-\d+(?:\.\d+){1,2}-\d+\.jar'
+		$previousPaperJar = $null
+
+		foreach ($line in $scriptLines) {
+			$uncommented = ($line -split '(?<!`)#', 2)[0]
+			if ([string]::IsNullOrWhiteSpace($uncommented)) { continue }
+			if ($uncommented -match $jarPattern) {
+				$previousPaperJar = $Matches[0]
+				break
+			}
+		}
+
+		if ($null -eq $previousPaperJar) {
+			Write-Warning "Could not find an existing Paper JAR reference in $scriptPath. Cannot update server launch script."
+			return
+		}
+
+		$newPaperJar = "paper-$MinecraftVersion-$NewPaperBuild.jar"
+
+		if ($previousPaperJar -eq $newPaperJar) {
+			Write-Verbose "$SCRIPT_NAME already references $newPaperJar; nothing to update."
+			return
+		}
+
 		if ($PSCmdlet.ShouldProcess($ServerPath, "Update start script")) {
 
-			if (-not $startExists) { throw "$scriptPath does not exist in the directory. Cannot continue with automatic update."}
-			$newPaperJar = "paper-$MinecraftVersion-$NewPaperBuild.jar"
-			Write-Verbose "Updating $SCRIPT_NAME from $PreviousPaperJar to $newPaperJar..."
-			(Get-Content -Path $scriptPath) -replace $PreviousPaperJar, $newPaperJar | Set-Content $scriptPath
+			Write-Verbose "Updating $SCRIPT_NAME from $previousPaperJar to $newPaperJar..."
+			$scriptLines -replace [regex]::Escape($previousPaperJar), $newPaperJar | Set-Content $scriptPath
 
-		} elseif (-not $startExists) {
-			Write-Warning "$scriptPath does not exist. Command will fail when run without -WhatIf"
 		}
 	}
 
