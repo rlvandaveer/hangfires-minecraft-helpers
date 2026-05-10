@@ -256,7 +256,7 @@ function Update-StartScript {
 
 	process {
 
-		New-Variable -Name SCRIPT_NAME -Value "start.ps1" -Option Constant
+		New-Variable -Name SCRIPT_NAME -Value "start.ps1" -Option Constant -WhatIf:$false
 		$scriptPath = (Join-Path -Path $ServerPath -ChildPath $SCRIPT_NAME)
 		$startExists = Test-Path -Path $scriptPath
 
