@@ -313,30 +313,40 @@ Restore-MinecraftServerWorld -Date '2026-04-01' -WorldName 'Survival' -ServerPat
 ### ConvertTo-MinecraftSavedGame
 
 Copies a Paper server world into the Minecraft client saves directory so it can be opened in
-single-player. Handles the nether (`DIM-1`) and end (`DIM1`) dimension folders.
+single-player. Handles the nether (`DIM-1`) and end (`DIM1`) dimension folders. The source can
+be either a live server directory or a backup archive produced by `Backup-MinecraftServerWorld`;
+when an archive is supplied it is expanded to a temporary directory that is removed after the
+conversion.
 
 ```powershell
-ConvertTo-MinecraftSavedGame [-WorldName <string>] [-DestinationPath <FileInfo>]
-                             [-Force] [-ServerPath <FileInfo>]
+ConvertTo-MinecraftSavedGame -WorldName <string> [-DestinationPath <FileInfo>] [-Force]
+                             [-ServerPath <FileInfo>]
+ConvertTo-MinecraftSavedGame -WorldName <string> -ArchivePath <FileInfo>
+                             [-DestinationPath <FileInfo>] [-Force]
 ```
 
 **Parameters**
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `-WorldName` | string | `HangFire0331s World` | Name of the world folder inside the server directory. |
+| `-WorldName` | string | _(required)_ | Name of the world folder. With `-ArchivePath`, must match the folder name inside the archive. |
+| `-ServerPath` | FileInfo | `/Applications/Minecraft-Server` | Path to the server directory. Mutually exclusive with `-ArchivePath`. |
+| `-ArchivePath` | FileInfo | _(required for archive set)_ | Path to a zip archive produced by `Backup-MinecraftServerWorld`. Expanded to a temp directory and cleaned up afterwards. |
 | `-DestinationPath` | FileInfo | `~/Library/Application Support/Minecraft/saves` | Client saves directory. |
 | `-Force` | switch | `$false` | Overwrite existing files in the destination. |
-| `-ServerPath` | FileInfo | `/Applications/Minecraft-Server` | Path to the server directory. |
 
 **Examples**
 
 ```powershell
-# Convert the default server world for single-player use
-ConvertTo-MinecraftSavedGame
+# Convert a named world from the default server directory
+ConvertTo-MinecraftSavedGame -WorldName 'HangFire0331s World'
 
 # Convert a named world from a custom server
 ConvertTo-MinecraftSavedGame -WorldName 'Survival' -ServerPath '/srv/mc/paper'
+
+# Convert directly from a Backup-MinecraftServerWorld archive
+ConvertTo-MinecraftSavedGame -WorldName 'Survival' `
+                             -ArchivePath '~/Downloads/minecraft/World and Server Backups/survival-2026-05-10.zip'
 ```
 
 ---

@@ -273,8 +273,16 @@ the world root.
 Paper-specific files (e.g. paper-world.yml, data/paper) are carried along with
 their dimension folders. The vanilla client ignores them.
 
+The source world can be supplied either as a directory under ServerPath or as a
+backup archive produced by Backup-MinecraftServerWorld. When ArchivePath is
+used, the archive is expanded into a temporary directory, converted, and the
+temporary directory is removed afterwards.
+
 .PARAMETER WorldName
-Name of the world folder under ServerPath.
+Name of the world folder. When using ServerPath, this is the folder under the
+server directory. When using ArchivePath, this must match the world folder
+contained in the archive (Backup-MinecraftServerWorld preserves the original
+folder name).
 
 .PARAMETER DestinationPath
 Minecraft client saves directory. Must exist. The converted world is written
@@ -286,24 +294,41 @@ Overwrite existing files in the destination saved game.
 .PARAMETER ServerPath
 Root directory of the PaperMC server installation containing the world folder.
 
+.PARAMETER ArchivePath
+Path to a zip archive produced by Backup-MinecraftServerWorld. The archive is
+expanded into a temporary directory for the conversion, then deleted.
+
 .EXAMPLE
 ConvertTo-MinecraftSavedGame -WorldName 'Familycraft' -ServerPath '/Applications/Minecraft-Server-Familycraft'
 
 Converts the Familycraft server world into a single-player saved game in the
 default saves directory.
+
+.EXAMPLE
+ConvertTo-MinecraftSavedGame -WorldName 'Familycraft' -ArchivePath '~/Downloads/minecraft/World and Server Backups/familycraft-2026-05-10.zip'
+
+Expands the Familycraft backup archive to a temporary directory, converts it
+into a single-player saved game, and cleans up the temporary files.
 #>
 function ConvertTo-MinecraftSavedGame {
-	[CmdletBinding()]
+	[CmdletBinding(DefaultParameterSetName = 'FromServer')]
 	param (
 		[Parameter(Mandatory = $true)]
 		[string]$WorldName,
-		[Parameter(Mandatory = $false)]
+		[Parameter(Mandatory = $false, ParameterSetName = 'FromServer')]
 		[ValidateScript({
 			if (-not ($_ | Test-Path)) { throw 'ServerPath is not a valid path'}
 			if (-not ($_ | Test-Path -PathType Container)) { throw 'ServerPath is not a directory'}
 			$true
 			})]
 		[System.IO.FileInfo]$ServerPath = '/Applications/Minecraft-Server',
+		[Parameter(Mandatory = $true, ParameterSetName = 'FromArchive')]
+		[ValidateScript({
+			if (-not ($_ | Test-Path)) { throw 'ArchivePath is not a valid path'}
+			if (-not ($_ | Test-Path -PathType Leaf)) { throw 'ArchivePath is not a file'}
+			$true
+		})]
+		[System.IO.FileInfo]$ArchivePath,
 		[Parameter(Mandatory = $false)]
 		[ValidateScript({
 			if (-not ($_ | Test-Path)) { throw 'Destination is not a valid path'}
@@ -315,28 +340,45 @@ function ConvertTo-MinecraftSavedGame {
 		[switch]$Force = $false
 	)
 
-	$worldPath = Join-Path -Path $ServerPath -ChildPath $WorldName
-	$savePath = Join-Path -Path $DestinationPath -ChildPath $WorldName
-	$dimensionsPath = Join-Path -Path $savePath -ChildPath 'dimensions/minecraft'
+	$tempPath = $null
+	try {
+		if ($PSCmdlet.ParameterSetName -eq 'FromArchive') {
+			$tempPath = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ([System.IO.Path]::GetRandomFileName())
+			New-Item -ItemType Directory -Path $tempPath | Out-Null
+			Expand-Archive -Path $ArchivePath -DestinationPath $tempPath -Force
+			$worldRoot = $tempPath
+		} else {
+			$worldRoot = $ServerPath
+		}
 
-	Copy-Item -Path $worldPath -Destination $DestinationPath -Recurse -Force:$Force
+		$worldPath = Join-Path -Path $worldRoot -ChildPath $WorldName
+		$savePath = Join-Path -Path $DestinationPath -ChildPath $WorldName
+		$dimensionsPath = Join-Path -Path $savePath -ChildPath 'dimensions/minecraft'
 
-	$overworldPath = Join-Path -Path $dimensionsPath -ChildPath 'overworld'
-	foreach ($folder in 'region', 'entities', 'poi') {
-		$source = Join-Path -Path $overworldPath -ChildPath $folder
-		if (Test-Path $source) {
-			Move-Item -Path $source -Destination $savePath -Force:$Force
+		Copy-Item -Path $worldPath -Destination $DestinationPath -Recurse -Force:$Force
+
+		$overworldPath = Join-Path -Path $dimensionsPath -ChildPath 'overworld'
+		foreach ($folder in 'region', 'entities', 'poi') {
+			$source = Join-Path -Path $overworldPath -ChildPath $folder
+			if (Test-Path $source) {
+				Move-Item -Path $source -Destination $savePath -Force:$Force
+			}
+		}
+
+		$netherPath = Join-Path -Path $dimensionsPath -ChildPath 'the_nether'
+		if (Test-Path $netherPath) {
+			Move-Item -Path $netherPath -Destination (Join-Path -Path $savePath -ChildPath 'DIM-1') -Force:$Force
+		}
+		$endPath = Join-Path -Path $dimensionsPath -ChildPath 'the_end'
+		if (Test-Path $endPath) {
+			Move-Item -Path $endPath -Destination (Join-Path -Path $savePath -ChildPath 'DIM1') -Force:$Force
+		}
+
+		Remove-Item -Path (Join-Path -Path $savePath -ChildPath 'dimensions') -Recurse -Force:$Force
+	}
+	finally {
+		if ($tempPath -and (Test-Path $tempPath)) {
+			Remove-Item -Path $tempPath -Recurse -Force
 		}
 	}
-
-	$netherPath = Join-Path -Path $dimensionsPath -ChildPath 'the_nether'
-	if (Test-Path $netherPath) {
-		Move-Item -Path $netherPath -Destination (Join-Path -Path $savePath -ChildPath 'DIM-1') -Force:$Force
-	}
-	$endPath = Join-Path -Path $dimensionsPath -ChildPath 'the_end'
-	if (Test-Path $endPath) {
-		Move-Item -Path $endPath -Destination (Join-Path -Path $savePath -ChildPath 'DIM1') -Force:$Force
-	}
-
-	Remove-Item -Path (Join-Path -Path $savePath -ChildPath 'dimensions') -Recurse -Force:$Force
 }
