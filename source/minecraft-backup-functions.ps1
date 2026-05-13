@@ -262,16 +262,24 @@ Converts a PaperMC server world into a vanilla Minecraft client saved game.
 
 .DESCRIPTION
 Copies a PaperMC server world to the client's saves directory and rewrites the
-dimension layout to match the vanilla client format:
+on-disk layout to match the vanilla client format:
 
 - Promotes <world>/dimensions/minecraft/overworld/{region,entities,poi} up to
 the world root.
 - Renames <world>/dimensions/minecraft/the_nether to DIM-1.
 - Renames <world>/dimensions/minecraft/the_end to DIM1.
-- Removes the now-empty dimensions folder.
+- Reorganizes <world>/players/{data,advancements,stats} into the vanilla
+{playerdata,advancements,stats} layout at the world root.
+- Removes Paper-injected artifacts (datapacks/bukkit, dimension paper-world.yml,
+per-dimension data/paper folders).
 
-Paper-specific files (e.g. paper-world.yml, data/paper) are carried along with
-their dimension folders. The vanilla client ignores them.
+NOTE: PaperMC 26+ writes a stripped level.dat that omits WorldGenSettings,
+GameRules, BorderXxx, weather, time, Player, and other tags the vanilla client
+requires; it stores the corresponding data per-dimension under
+data/minecraft/*.dat. This cmdlet does not edit NBT, so the converted save will
+still fail to load in the vanilla client until level.dat is reconstructed. See
+docs/paper-to-vanilla-conversion.md for the analysis and the files that must be
+merged.
 
 The source world can be supplied either as a directory under ServerPath or as a
 backup archive produced by Backup-MinecraftServerWorld. When ArchivePath is
@@ -357,6 +365,27 @@ function ConvertTo-MinecraftSavedGame {
 
 		Copy-Item -Path $worldPath -Destination $DestinationPath -Recurse -Force:$Force
 
+		# Strip Paper-injected datapack; vanilla cannot resolve it and refuses to load
+		# while it is referenced. Removing the folder alone is not enough -- the
+		# DataPacks.Enabled list in level.dat still names "file/bukkit" and "paper".
+		# See docs/paper-to-vanilla-conversion.md.
+		$bukkitPack = Join-Path -Path $savePath -ChildPath 'datapacks/bukkit'
+		if (Test-Path $bukkitPack) {
+			Remove-Item -Path $bukkitPack -Recurse -Force
+		}
+
+		# Remove per-dimension Paper artifacts (the dimension folders themselves are
+		# repositioned below). data/minecraft/*.dat per-dimension files are preserved
+		# in place so they can later be merged back into level.dat.
+		foreach ($dim in 'overworld', 'the_nether', 'the_end') {
+			$dimPath = Join-Path -Path $dimensionsPath -ChildPath $dim
+			if (-not (Test-Path $dimPath)) { continue }
+			$paperWorldYml = Join-Path -Path $dimPath -ChildPath 'paper-world.yml'
+			if (Test-Path $paperWorldYml) { Remove-Item -Path $paperWorldYml -Force }
+			$paperData = Join-Path -Path $dimPath -ChildPath 'data/paper'
+			if (Test-Path $paperData) { Remove-Item -Path $paperData -Recurse -Force }
+		}
+
 		$overworldPath = Join-Path -Path $dimensionsPath -ChildPath 'overworld'
 		foreach ($folder in 'region', 'entities', 'poi') {
 			$source = Join-Path -Path $overworldPath -ChildPath $folder
@@ -365,16 +394,43 @@ function ConvertTo-MinecraftSavedGame {
 			}
 		}
 
-		$netherPath = Join-Path -Path $dimensionsPath -ChildPath 'the_nether'
-		if (Test-Path $netherPath) {
-			Move-Item -Path $netherPath -Destination (Join-Path -Path $savePath -ChildPath 'DIM-1') -Force:$Force
-		}
-		$endPath = Join-Path -Path $dimensionsPath -ChildPath 'the_end'
-		if (Test-Path $endPath) {
-			Move-Item -Path $endPath -Destination (Join-Path -Path $savePath -ChildPath 'DIM1') -Force:$Force
+		# Move-Item of a directory to a non-existent destination is not a reliable
+		# rename on PowerShell Core (the destination is created as a directory and
+		# the source ends up nested inside it). Do a two-step move-then-rename so
+		# the final layout is <save>/DIM-1 and <save>/DIM1.
+		foreach ($pair in @(@('the_nether', 'DIM-1'), @('the_end', 'DIM1'))) {
+			$sourceName = $pair[0]
+			$destName = $pair[1]
+			$source = Join-Path -Path $dimensionsPath -ChildPath $sourceName
+			if (-not (Test-Path $source)) { continue }
+			$finalDest = Join-Path -Path $savePath -ChildPath $destName
+			if (Test-Path $finalDest) {
+				Remove-Item -Path $finalDest -Recurse -Force
+			}
+			Move-Item -Path $source -Destination $savePath
+			Rename-Item -Path (Join-Path -Path $savePath -ChildPath $sourceName) -NewName $destName
 		}
 
-		Remove-Item -Path (Join-Path -Path $savePath -ChildPath 'dimensions') -Recurse -Force:$Force
+		# Reshape Paper's players/{data,advancements,stats} into the vanilla
+		# {playerdata,advancements,stats} layout at the world root.
+		$playersDir = Join-Path -Path $savePath -ChildPath 'players'
+		if (Test-Path $playersDir) {
+			foreach ($mapping in @(@('data', 'playerdata'), @('advancements', 'advancements'), @('stats', 'stats'))) {
+				$srcPath = Join-Path -Path $playersDir -ChildPath $mapping[0]
+				if (-not (Test-Path $srcPath)) { continue }
+				$destPath = Join-Path -Path $savePath -ChildPath $mapping[1]
+				if (Test-Path $destPath) {
+					Remove-Item -Path $destPath -Recurse -Force
+				}
+				Move-Item -Path $srcPath -Destination $destPath
+			}
+			Remove-Item -Path $playersDir -Recurse -Force
+		}
+
+		Write-Warning ("PaperMC 26+ writes a stripped level.dat that the vanilla client cannot load. " +
+			"File-level conversion is complete, but level.dat still needs NBT surgery to merge per-dimension " +
+			"WorldGenSettings / GameRules / weather / border / clock data and to drop the 'file/bukkit' and " +
+			"'paper' entries from DataPacks.Enabled. See docs/paper-to-vanilla-conversion.md.")
 	}
 	finally {
 		if ($tempPath -and (Test-Path $tempPath)) {
