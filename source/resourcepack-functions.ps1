@@ -15,11 +15,18 @@ function Copy-ResourcePackForTesting {
 	$scrubbedResourcePackName = (Get-Culture).TextInfo.ToLower(($ResourcePackName -replace ' ', '-'))
 	$sourcePath = Join-Path -Path $Path -ChildPath $scrubbedResourcePackName
 	[array]$excludeFilenames = @('Thumbs.db', '.DS_Store', '.git', '.gitattributes', '.gitignore')
-	$resourceFiles = Get-ChildItem -Path $sourcePath -Recurse -Exclude $excludeFilenames
-	$version = Get-ResourcePackVersion -Path $Path
+	$resourceFiles = Get-ChildItem -Path $sourcePath -Recurse -File -Exclude $excludeFilenames
+	$version = Get-ResourcePackVersion -ResourcePackName $ResourcePackName -Path $Path
 	$versionedResourcePackName = "$scrubbedResourcePackName-$version"
 	$resourcePackDestination = Join-Path -Path $Destination -ChildPath $versionedResourcePackName
-	$resourceFiles | Copy-Item -Destination { Join-Path -Path $resourcePackDestination -ChildPath $_.FullName.Substring($sourcePath.Length) } -Force:$Force -Exclude $excludeFilenames
+	foreach ($file in $resourceFiles) {
+		$destPath = Join-Path -Path $resourcePackDestination -ChildPath $file.FullName.Substring($sourcePath.Length)
+		$parentDir = Split-Path -Path $destPath -Parent
+		if (-not (Test-Path -Path $parentDir)) {
+			New-Item -ItemType Directory -Force -Path $parentDir | Out-Null
+		}
+		Copy-Item -Path $file.FullName -Destination $destPath -Force:$Force
+	}
 }
 
 function Compress-ResourcePackForTesting {
@@ -27,7 +34,7 @@ function Compress-ResourcePackForTesting {
 		[Parameter(Mandatory = $false)]
 		[string]$ResourcePackName = "HangFire0331 Vanilla Tweaks",
 		[Parameter(Mandatory = $false)]
-		[string]$Path = '~/Code/Minecraft/resourcepacks',
+		[string]$Path = '~/Code/minecraft/resourcepacks',
 		[Parameter(Mandatory = $false)]
 		[string]$Destination = '~/Library/Application Support/minecraft/resourcepacks',
 		[Parameter(Mandatory = $false)]
@@ -39,9 +46,9 @@ function Compress-ResourcePackForTesting {
 	$scrubbedResourcePackName = (Get-Culture).TextInfo.ToLower(($ResourcePackName -replace ' ', '-'))
 	$sourcePath = Join-Path -Path $Path -ChildPath $scrubbedResourcePackName
 	[array]$excludeFilenames = @('Thumbs.db', '.DS_Store', '.git', '.gitattributes', '.gitignore')
-	$resourceFiles = Get-ChildItem -Path $sourcePath -Recurse -Exclude $excludeFilenames
-	$tempDestination = Join-Path -Path $env:TMPDIR -ChildPath $scrubbedResourcePackName
-	$version = Get-ResourcePackVersion -Path $Path
+	$resourceFiles = Get-ChildItem -Path $sourcePath -Recurse -File -Exclude $excludeFilenames
+	$tempDestination = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath $scrubbedResourcePackName
+	$version = Get-ResourcePackVersion -ResourcePackName $ResourcePackName -Path $Path
 	$versionedResourcePackName = "$scrubbedResourcePackName-$version"
 	$resourcePackDestination = Join-Path -Path $Destination -ChildPath "$versionedResourcePackName.zip"
 	if ((Test-Path -Path $resourcePackDestination) -and ($Force -eq $false)) {
@@ -51,9 +58,14 @@ function Compress-ResourcePackForTesting {
 	if (Test-Path -Path $tempDestination) {
 		Remove-Item $tempDestination -Recurse -Force
 	}
-	$resourceFiles | Copy-Item -Destination {
-		Join-Path -Path $tempDestination -ChildPath $_.FullName.Substring($sourcePath.Length)
-	} -Force -Exclude $excludeFilenames
+	foreach ($file in $resourceFiles) {
+		$destPath = Join-Path -Path $tempDestination -ChildPath $file.FullName.Substring($sourcePath.Length)
+		$parentDir = Split-Path -Path $destPath -Parent
+		if (-not (Test-Path -Path $parentDir)) {
+			New-Item -ItemType Directory -Force -Path $parentDir | Out-Null
+		}
+		Copy-Item -Path $file.FullName -Destination $destPath -Force
+	}
 	Compress-Archive -Path (Join-Path -Path $tempDestination -ChildPath "*") -DestinationPath $resourcePackDestination -Force:$Force
 }
 
@@ -61,12 +73,14 @@ function Get-ResourcePackVersion {
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $false)]
+		[string]$ResourcePackName = "HangFire0331 Vanilla Tweaks",
+		[Parameter(Mandatory = $false)]
 		[ValidateScript( {
 				if (-not ($_ | Test-Path)) { throw "The specified path is not a valid path or does not exist" }
 				if (-not ($_ | Test-Path -PathType Container)) { throw "The specified path does not point to a directory destination" }
 				$true
 			})]
-		[System.IO.FileInfo]$Path = '~/Code/Heliar/minecraft/resourcepacks'
+		[System.IO.FileInfo]$Path = '~/Code/minecraft/resourcepacks'
 	)
 
 	begin {
@@ -89,10 +103,10 @@ function Get-ResourcePackVersion {
 
 	process {
 
-		$packMetaData = Get-ResourcePackMetaData -Path $Path
+		$packMetaData = Get-ResourcePackMetaData -ResourcePackName $ResourcePackName -Path $Path
 		$packFormat = $packMetaData.pack.pack_format
 
-		$version = $packFormats["$packFormat"]?.version ? $packFormats["$packFormat"].version : ($packFormats["$packFormat"]?.max ? $packFormats["$packFormat"].max : "$($packFormats["$packFormat"].min)+")
+		$version = $packFormats["$packFormat"]?.max ? $packFormats["$packFormat"].max : "$($packFormats["$packFormat"].min)+"
 		$version
 	}
 }
@@ -101,16 +115,18 @@ function Get-ResourcePackVersionedDescription {
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $false)]
+		[string]$ResourcePackName = "HangFire0331 Vanilla Tweaks",
+		[Parameter(Mandatory = $false)]
 		[ValidateScript( {
 				if (-not ($_ | Test-Path)) { throw "The specified path is not a valid path or does not exist" }
 				if (-not ($_ | Test-Path -PathType Container)) { throw "The specified path does not point to a directory destination" }
 				$true
 			})]
-		[System.IO.FileInfo]$Path = '~/Code/Heliar/minecraft/resourcepacks'
+		[System.IO.FileInfo]$Path = '~/Code/minecraft/resourcepacks'
 	)
 
-	$packMetaData = Get-ResourcePackMetaData -Path $Path
-	$description = "$($packMetaData.pack.description) for $(Get-ResourcePackVersion -Path $Path)"
+	$packMetaData = Get-ResourcePackMetaData -ResourcePackName $ResourcePackName -Path $Path
+	$description = "$($packMetaData.pack.description) for $(Get-ResourcePackVersion -ResourcePackName $ResourcePackName -Path $Path)"
 	$description
 
 }
@@ -119,12 +135,14 @@ function Get-ResourcePackMetaData {
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $false)]
+		[string]$ResourcePackName = "HangFire0331 Vanilla Tweaks",
+		[Parameter(Mandatory = $false)]
 		[ValidateScript( {
 				if (-not ($_ | Test-Path)) { throw "The specified path is not a valid path or does not exist" }
 				if (-not ($_ | Test-Path -PathType Container)) { throw "The specified path does not point to a directory destination" }
 				$true
 			})]
-		[System.IO.FileInfo]$Path = '~/Code/Heliar/minecraft/resourcepacks'
+		[System.IO.FileInfo]$Path = '~/Code/minecraft/resourcepacks'
 	)
 
 	$packMetaFileName = 'pack.mcmeta'

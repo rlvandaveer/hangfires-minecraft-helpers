@@ -401,7 +401,7 @@ Compress-ResourcePackForTesting [-ResourcePackName <string>] [-Path <string>]
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `-ResourcePackName` | string | `HangFire0331 Vanilla Tweaks` | Display name of the resource pack. |
-| `-Path` | string | `~/Code/Minecraft/resourcepacks` | Directory containing the resource pack source folder. |
+| `-Path` | string | `~/Code/minecraft/resourcepacks` | Directory containing the resource pack source folder. |
 | `-Destination` | string | `~/Library/Application Support/minecraft/resourcepacks` | Directory where the ZIP will be written. |
 | `-Force` | switch | `$false` | Overwrite an existing ZIP with the same name. Throws if the file exists and `-Force` is not set. |
 
@@ -423,19 +423,20 @@ Returns the Minecraft version string for a resource pack by reading its `pack_fo
 `pack.mcmeta` and mapping it to the corresponding Minecraft version range.
 
 ```powershell
-Get-ResourcePackVersion [-Path <FileInfo>]
+Get-ResourcePackVersion [-ResourcePackName <string>] [-Path <FileInfo>]
 ```
 
 **Parameters**
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `-Path` | FileInfo | `~/Code/Heliar/minecraft/resourcepacks` | Directory containing the resource pack source folder. |
+| `-ResourcePackName` | string | `HangFire0331 Vanilla Tweaks` | Display name of the resource pack. |
+| `-Path` | FileInfo | `~/Code/minecraft/resourcepacks` | Directory containing the resource pack source folder. |
 
 **Examples**
 
 ```powershell
-Get-ResourcePackVersion -Path '~/Code/minecraft/resourcepacks'
+Get-ResourcePackVersion -ResourcePackName 'MyPack' -Path '~/Code/minecraft/resourcepacks'
 ```
 
 ---
@@ -446,19 +447,20 @@ Returns the resource pack description string appended with its Minecraft version
 display or use in pack metadata.
 
 ```powershell
-Get-ResourcePackVersionedDescription [-Path <FileInfo>]
+Get-ResourcePackVersionedDescription [-ResourcePackName <string>] [-Path <FileInfo>]
 ```
 
 **Parameters**
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `-Path` | FileInfo | `~/Code/Heliar/minecraft/resourcepacks` | Directory containing the resource pack source folder. |
+| `-ResourcePackName` | string | `HangFire0331 Vanilla Tweaks` | Display name of the resource pack. |
+| `-Path` | FileInfo | `~/Code/minecraft/resourcepacks` | Directory containing the resource pack source folder. |
 
 **Examples**
 
 ```powershell
-Get-ResourcePackVersionedDescription -Path '~/Code/minecraft/resourcepacks'
+Get-ResourcePackVersionedDescription -ResourcePackName 'MyPack' -Path '~/Code/minecraft/resourcepacks'
 ```
 
 ---
@@ -468,18 +470,19 @@ Get-ResourcePackVersionedDescription -Path '~/Code/minecraft/resourcepacks'
 Reads and returns the parsed contents of `pack.mcmeta` for the resource pack.
 
 ```powershell
-Get-ResourcePackMetaData [-Path <FileInfo>]
+Get-ResourcePackMetaData [-ResourcePackName <string>] [-Path <FileInfo>]
 ```
 
 **Parameters**
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `-Path` | FileInfo | `~/Code/Heliar/minecraft/resourcepacks` | Directory containing the resource pack source folder. |
+| `-ResourcePackName` | string | `HangFire0331 Vanilla Tweaks` | Display name of the resource pack. |
+| `-Path` | FileInfo | `~/Code/minecraft/resourcepacks` | Directory containing the resource pack source folder. |
 
 **Examples**
 
 ```powershell
-$meta = Get-ResourcePackMetaData -Path '~/Code/minecraft/resourcepacks'
+$meta = Get-ResourcePackMetaData -ResourcePackName 'MyPack' -Path '~/Code/minecraft/resourcepacks'
 $meta.pack.pack_format
 ```
